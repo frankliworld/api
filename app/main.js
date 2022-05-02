@@ -44,7 +44,7 @@ const templateCard = (user) => {
   return `
     <article class="overflow-visible py-3 px-3 relative bg-white shadow-lg ring-1 ring-black/5 rounded-xl" style="display: grid; grid-template-columns: 50px 1fr auto; gap: 10px; align-items: center">
       <div>
-        <img class="absolute -left-4 w-20 h-20 rounded-full shadow-lg" style="transform: translateY(-50%)" src="${picture}" alt="${name}"/>
+        <img class="absolute bg-white -left-4 w-20 h-20 rounded-full shadow-lg" style="transform: translateY(-50%)" src="${picture}" alt="${name}"/>
       </div>
       <div class="flex flex-col">
         <h2 class="font-bold">${name} ${lastname}</h2>
@@ -60,7 +60,10 @@ const templateCard = (user) => {
 const getUsers = async () => {
   const res = await fetch("/users");
   const users = await res.json();
-  qs("#user-list").innerHTML = users.map((user) => templateCard(user)).join("");
+  const userList = qs("#user-list");
+  userList.innerHTML = users.map((user) => templateCard(user)).join("");
+  userList.scrollTop = userList.scrollHeight;
+  
   users.forEach((user) => {
     const button = qs(`button[data-id="${user._id}"]`);
     button.addEventListener("click", async (e) => {
@@ -80,15 +83,19 @@ const addFormListener = () => {
     e.preventDefault();
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    await fetch("/users", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).catch((err) => console.log(err));
-    form.reset();
-    getUsers();
+    if(data.name && data.lastname) {
+      await fetch("/users", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).catch((err) => console.log(err));
+      form.reset();
+      getUsers();
+    } else {
+      console.log("data not valid");
+    }
   });
 };
 
